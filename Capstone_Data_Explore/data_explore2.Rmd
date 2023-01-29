@@ -1,0 +1,51 @@
+---
+title: "tidync"
+output: html_document
+date: "2023-01-22"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidync)
+library(ncmeta)
+```
+
+```{r}
+nc_file <- "/Users/jfrench/Downloads/LandsatKelpBiomass_2022_Q4_withmetadata.nc"
+```
+
+```{r}
+kelp_file <- tidync(nc_file) |> 
+  activate("latitude")
+```
+
+```{r}
+print(kelp_file)
+```
+
+```{r}
+nc_grids(kelp_file)
+
+```
+
+```{r}
+oisstfile <- system.file("nc/reduced.nc", package = "stars")
+
+```
+
+```{r}
+library(tidync)
+oisst <- tidync(oisstfile)
+```
+
+```{r}
+print(oisst)
+```
+
+```{r}
+ncmeta::nc_grids(oisstfile)
+```
+

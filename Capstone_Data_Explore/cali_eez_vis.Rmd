@@ -1,0 +1,114 @@
+---
+title: "California EEZ Vis"
+output: html_document
+date: "2023-01-24"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Goals: I want to make a visualization of California's EEZ and the United States EEZ out to 150 meters.
+
+Need: us_states (sp_data or sp_data_large), bathymetry file(local)
+
+Plan: add a 3 mile and 200 mile buffer to us_states, rasterize, clip to cells with 150 meters of depth or less.
+
+```{r label= "Load Packages"}
+# Load packages
+
+library(tidyverse)
+library(spData)
+library(terra)
+library(sp)
+library(sf)
+library(tmap)
+library(here)
+
+```
+
+
+## Data Sources
+
+Federal Maritime Boundaries Data is downloadable from [NOAA](https://nauticalcharts.noaa.gov/data/us-maritime-limits-and-boundaries.html)
+
+California Coastal Zone is downloadable from [ca.gov](https://map.dfg.ca.gov/metadata/ds0990.html)
+
+Polygons of US states is availabel through the `spData` package. 
+
+Bathymetry data is available...
+
+```{r label= "load in data"}
+
+#Load in data
+
+## Bathymetry
+depth_rast <- rast(here("..", "depth.tif"))|> 
+  project("EPSG:4326")
+
+## US states polygons
+states <- us_states |> 
+  st_transform(crs = 4326)
+
+## Maritime boundaries from NOAA
+boundaries <- st_read(here("..", "maritime_boundaries", "USMaritimeLimitsNBoundaries.shp")) |> 
+  st_transform(crs = 4326)
+
+## Coastal Zone
+
+coastal_zone <- st_read(here("..", "cali_coast_zone", "ds990.gdb"))|> 
+  st_transform(crs = 4326)
+
+# Sediment thickness
+
+sediment_depth <- rast(here("..", "SedimentThickness_SantaBarbaraChannel", "SedimentThickness_SantaBarbaraChannel.tif")) |> 
+  project("EPSG:4326")
+  
+
+### Check that CRS is the same for all datasets
+
+crs(states) == crs(depth_rast)
+crs(states) == crs(boundaries)
+crs(states) == crs(coastal_zone)
+crs(states) == crs(sediment_depth)
+
+
+st_crs(boundaries, parmeters = TRUE)
+crs(depth_rast)
+```
+
+```{r label= "filter states to California"}
+#filter states to California
+## This will be used in the next chunk to filter boundaries
+cali <- states |> 
+  filter(NAME == "California")
+
+```
+
+```{r label= "filter boundaries to pacific coast}
+# Boundaries to Pacific Coast
+pacific_boundaries <- boundaries |> 
+  filter(REGION == "Pacific Coast") 
+```
+
+```{r }
+depth_rast_reclass <- clamp(depth_rast, lower = -150, upper= 0, value=FALSE)
+```
+
+```{r label= "initial vis"}
+tmap_mode(mode = "view")
+
+map <- 
+  tm_shape(sediment_depth) +
+  tm_raster() +
+  tm_shape(pacific_boundaries) +
+  tm_lines() +
+  tm_shape(coastal_zone) +
+  tm_borders(col = "purple2", 
+             lwd = 2) +
+  # tm_shape(depth_rast_reclass) +
+  # tm_raster()+
+  tm_scale_bar()
+map
+  
+```

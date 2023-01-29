@@ -1,0 +1,32 @@
+---
+title: "Seafloor Sediment Depth tiff"
+output: html_document
+date: "2023-01-29"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+# load in libraries
+library(here)
+library(terra)
+```
+
+I don't think this has the extent or information we are looking for. 
+
+```{r}
+# read in file
+
+sediment_depth <- rast(here("..", "SedimentThickness_SantaBarbaraChannel", "SedimentThickness_SantaBarbaraChannel.tif"))
+```
+
+```{r}
+# Initial plot of sediment depth tif
+
+plot(sediment_depth)
+
+crs(sediment_depth)
+```
+
