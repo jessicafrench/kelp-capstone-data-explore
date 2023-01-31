@@ -1,0 +1,48 @@
+---
+title: "kelp nitrate climate data"
+output: html_document
+date: "2023-01-29"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+# load in packages
+library(tidyverse)
+library(here)
+library(sf)
+library(tmap)
+```
+
+
+## LTER dataset downloaded from [here](https://sbclter.msi.ucsb.edu/data/catalog/package/?package=knb-lter-sbc.144). Nitrogen concentration is in micromoles per liter of seawater at the surface. Temporal scale is quarter and year from 1987 to 2019.
+
+```{r}
+# load in data on kelp nitrate and climate factors downloaded from lters website
+
+lter_data <- read_csv("/Users/jfrench/Documents/MEDS/Capstone/DATA/Nitrogen_Data/Nitrate_LTER/kelp_no3_waves_quarterly_long (1).csv")
+
+# load in the location data
+
+lter_locations <- read_csv("/Users/jfrench/Documents/MEDS/Capstone/DATA/Nitrogen_Data/Nitrate_LTER/locations (1).csv")
+
+```
+
+```{r}
+# Join location data to nitrogen data by site id. 
+# Convert the lat and lon columns into point geometry. 
+##### I don't know if wgs84 is the right crs for this area but it will work for now.
+lter_data_geom <- left_join(lter_data, lter_locations, by = "site_id") |> 
+  st_as_sf(coords = c(lon = "lon", lat = "lat"), crs = "EPSG:4326")
+```
+
+```{r}
+# Visualize using tmap
+tmap_mode(mode = "view")
+
+tm_shape(lter_data_geom) +
+  tm_dots(col = "no3")
+```
+
