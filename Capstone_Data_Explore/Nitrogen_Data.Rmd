@@ -46,3 +46,44 @@ tm_shape(lter_data_geom) +
   tm_dots(col = "no3")
 ```
 
+## Cal COFI nitrogen dataset downloaded from [here](https://calcofi.org/data/oceanographic-data/bottle-database/). There are two files, cast and bottle. The cast file contains the metadata including the location and dates that the samples were taken. The bottle data is the actual measurements were are interested in but we need to join the cast data to it to have the location. 
+
+```{r}
+# Load in both the cast(metadata).. 
+
+# Filter the cast data to exclude anything from before 2014. Select columns to have the lat, lon, cast count(Cst_Cnt), and quarter.
+# Convert lat lon columns into point geometry
+CalCOFI_cast <- read_csv("/Users/jfrench/Documents/MEDS/Capstone/DATA/Nitrogen_Data/CalCOFI_Database_194903-202001_csv_22Sep2021/194903-202001_Cast.csv") |> 
+  filter(Year >= 2014) |> 
+  select(c("Cst_Cnt", "Quarter", "Year", "Lat_Dec", "Lon_Dec")) 
+```
+
+```{r}
+# Load in bottle data and join the cast data to it. There is no date to filter by in the bottle data so the join acts as a filter. 
+CalCOFI_bottle <- read_csv("/Users/jfrench/Documents/MEDS/Capstone/DATA/Nitrogen_Data/CalCOFI_Database_194903-202001_csv_22Sep2021/194903-202001_Bottle.csv", locale=locale(encoding="latin1")) |> 
+  right_join(CalCOFI_cast, by = "Cst_Cnt")|> 
+  st_as_sf(coords = c(lon = "Lon_Dec", lat = "Lat_Dec"), crs = "EPSG: 4326")
+
+
+```
+
+There are parsing problems in columns 57, 59, 60, 61, 62. None are variables we are interested in. 
+```{r}
+# Column 57 is DIC2
+CalCOFI_bottle[57]
+# Column 59 is TA2
+CalCOFI_bottle[59]
+# Column 60 is pH1
+CalCOFI_bottle[60]
+# Column 61 is pH2
+CalCOFI_bottle[61]
+# Column 62 is DIC quality comment. 
+CalCOFI_bottle[62]
+```
+
+```{r}
+# Create map to visualize the area the data cover
+tm_shape(CalCOFI_bottle) +
+  tm_dots(col = "NO3uM")
+```
+
