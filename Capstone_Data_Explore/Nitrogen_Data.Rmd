@@ -14,15 +14,17 @@ library(tidyverse)
 library(here)
 library(sf)
 library(tmap)
+library(lubridate)
 ```
 
 
 ## LTER dataset downloaded from [here](https://sbclter.msi.ucsb.edu/data/catalog/package/?package=knb-lter-sbc.144). Nitrogen concentration is in micromoles per liter of seawater at the surface. Temporal scale is quarter and year from 1987 to 2019.
 
 ```{r}
-# load in data on kelp nitrate and climate factors downloaded from lters website
+# load in data on kelp nitrate and climate factors downloaded from lters website, filter to years 2014 and later
 
-lter_data <- read_csv("/Users/jfrench/Documents/MEDS/Capstone/DATA/Nitrogen_Data/Nitrate_LTER/kelp_no3_waves_quarterly_long (1).csv")
+lter_data <- read_csv("/Users/jfrench/Documents/MEDS/Capstone/DATA/Nitrogen_Data/Nitrate_LTER/kelp_no3_waves_quarterly_long (1).csv") |> 
+  filter(year >= 2014)
 
 # load in the location data
 
@@ -59,7 +61,7 @@ CalCOFI_cast <- read_csv("/Users/jfrench/Documents/MEDS/Capstone/DATA/Nitrogen_D
 ```
 
 ```{r}
-# Load in bottle data and join the cast data to it. There is no date to filter by in the bottle data so the join acts as a filter. 
+# Load in bottle data and join the cast data to it. There is no date to filter by in the bottle data so the join acts as a filter.  I am not sure what the locale=.. is doing exactly but the file wouldn't read without it.
 CalCOFI_bottle <- read_csv("/Users/jfrench/Documents/MEDS/Capstone/DATA/Nitrogen_Data/CalCOFI_Database_194903-202001_csv_22Sep2021/194903-202001_Bottle.csv", locale=locale(encoding="latin1")) |> 
   right_join(CalCOFI_cast, by = "Cst_Cnt")|> 
   st_as_sf(coords = c(lon = "Lon_Dec", lat = "Lat_Dec"), crs = "EPSG: 4326")
@@ -85,5 +87,29 @@ CalCOFI_bottle[62]
 # Create map to visualize the area the data cover
 tm_shape(CalCOFI_bottle) +
   tm_dots(col = "NO3uM")
+```
+
+## Plumes and Blooms, data available to download [here](http://www.oceancolor.ucsb.edu/plumes_and_blooms/) data exploration, this does not have the same spatial coverage but has more data in the area is does cover compared to the CalCOFI data. This data set is also extremely lacking in metadata so I need to reach out to the researchers to see if they have it.
+
+```{r}
+# Read in the plumes and blooms csv
+# Convert the date column to a data so we can filter by year, for now I am assuming YMD for the date format but need to get ahold of the researchers before commiting to that. Convert lat and lon into point geom.
+PlumesBlooms <- read_csv("/Users/jfrench/Documents/MEDS/Capstone/DATA/Nitrogen_Data/Plumes_and_Blooms_bottle_file_data.csv", na = c('-999.00000', '-999', "")) |>
+  mutate("DATE" = lubridate::ymd(DATE),
+         "LON" = LON*-1,) |>
+  filter(DATE >= 2014-01-01,
+         LON < 100,
+         LAT >= 30 & LAT <= 40) |>
+  st_as_sf(coords = c(lon = "LON", lat = "LAT"), crs = "EPSG:4326")
+```
+
+
+There is definitely some wonkyness with the coordinates: NAs longitude in the latitude column, all the longitudes are on the wrong side of the planet, and values that do not make sense. Again need to reach out and get metadata from them before actually incorporating this in project. Also there should not be negative values for nitrogen concentration :( 
+
+```{r}
+# Visualize PlumesBlooms data
+
+tm_shape(PlumesBlooms) +
+  tm_dots(col = "NO3NO2")
 ```
 
