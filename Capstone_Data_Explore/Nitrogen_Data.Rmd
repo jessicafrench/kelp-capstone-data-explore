@@ -113,3 +113,5 @@ tm_shape(PlumesBlooms) +
   tm_dots(col = "NO3NO2")
 ```
 
+## Next is the mean nitrogen data from noaa
+
