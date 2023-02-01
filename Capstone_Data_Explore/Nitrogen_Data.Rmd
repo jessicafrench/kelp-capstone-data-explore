@@ -70,7 +70,7 @@ CalCOFI_bottle <- read_csv("/Users/jfrench/Documents/MEDS/Capstone/DATA/Nitrogen
 ```
 
 There are parsing problems in columns 57, 59, 60, 61, 62. None are variables we are interested in. 
-```{r}
+```{r label = "CalCOFI"}
 # Column 57 is DIC2
 CalCOFI_bottle[57]
 # Column 59 is TA2
@@ -83,7 +83,7 @@ CalCOFI_bottle[61]
 CalCOFI_bottle[62]
 ```
 
-```{r}
+```{r label = "CalCOFI viz"}
 # Create map to visualize the area the data cover
 tm_shape(CalCOFI_bottle) +
   tm_dots(col = "NO3uM")
@@ -91,9 +91,9 @@ tm_shape(CalCOFI_bottle) +
 
 ## Plumes and Blooms, data available to download [here](http://www.oceancolor.ucsb.edu/plumes_and_blooms/) data exploration, this does not have the same spatial coverage but has more data in the area is does cover compared to the CalCOFI data. This data set is also extremely lacking in metadata so I need to reach out to the researchers to see if they have it.
 
-```{r}
+```{r label = Plumes and Blooms}
 # Read in the plumes and blooms csv
-# Convert the date column to a data so we can filter by year, for now I am assuming YMD for the date format but need to get ahold of the researchers before commiting to that. Convert lat and lon into point geom.
+# Convert the date column to a data so we can filter by year, for now I am assuming YMD for the date format but need to get ahold of the researchers before committing to that. Convert lat and lon into point geom.
 PlumesBlooms <- read_csv("/Users/jfrench/Documents/MEDS/Capstone/DATA/Nitrogen_Data/Plumes_and_Blooms_bottle_file_data.csv", na = c('-999.00000', '-999', "")) |>
   mutate("DATE" = lubridate::ymd(DATE),
          "LON" = LON*-1,) |>
@@ -106,12 +106,22 @@ PlumesBlooms <- read_csv("/Users/jfrench/Documents/MEDS/Capstone/DATA/Nitrogen_D
 
 There is definitely some wonkyness with the coordinates: NAs longitude in the latitude column, all the longitudes are on the wrong side of the planet, and values that do not make sense. Again need to reach out and get metadata from them before actually incorporating this in project. Also there should not be negative values for nitrogen concentration :( 
 
-```{r}
+```{r label = "Plumes and Blooms Viz"}
 # Visualize PlumesBlooms data
-
+tmap_mode(mode = "view")
 tm_shape(PlumesBlooms) +
   tm_dots(col = "NO3NO2")
 ```
 
-## Next is the mean nitrogen data from noaa
+## Next is the mean nitrogen data from noaa, downloadable [here](https://www.fisheries.noaa.gov/inport/item/66153)
+
+I am going to try this [tutorial](https://workshops.distancesampling.org/duke-spatial-2015/practicals/process-geodata-2.html)
+
+```{r}
+# Load in rgdal
+library(rgdal)
+
+# use ogrListLayers show all of the layers in the file and then you can read in only the layers we want. 
+ogrListLayers("/Users/jfrench/Documents/MEDS/Capstone/DATA/Nitrogen_Data/NitrateMeanConcentration_NOAA/NitrateMeanConcentration.gdb")
+```
 
