@@ -113,15 +113,17 @@ tm_shape(PlumesBlooms) +
   tm_dots(col = "NO3NO2")
 ```
 
-## Next is the mean nitrogen data from noaa, downloadable [here](https://www.fisheries.noaa.gov/inport/item/66153)
 
-I am going to try this [tutorial](https://workshops.distancesampling.org/duke-spatial-2015/practicals/process-geodata-2.html)
+## Some of the data comes form bio-oracle who have an r package that we will check out below. The NOAA mean nitrogen concentration data was derived from bio oracle data that we can access directly through their website and an r package that they maintain. They resolution isnt awesome but I think we could use this to improve coverage. 
 
 ```{r}
-# Load in rgdal
-library(rgdal)
+# Read in the library
+library(sdmpredictors)
 
-# use ogrListLayers show all of the layers in the file and then you can read in only the layers we want. 
-ogrListLayers("/Users/jfrench/Documents/MEDS/Capstone/DATA/Nitrogen_Data/NitrateMeanConcentration_NOAA/NitrateMeanConcentration.gdb")
+# List the datasets
+datasets <- list_datasets(terrestrial = FALSE, marine = TRUE)
+list_layers(datasets)
+
+# There is a lot here and we need to look into what might be useful.
 ```
 
